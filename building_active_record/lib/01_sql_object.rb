@@ -5,7 +5,8 @@ require 'active_support/inflector'
 
 class SQLObject
   def self.columns
-    data_return = DBConnection.execute2(<<-SQL)
+    return @columns if @columns != nil
+    query_return = DBConnection.execute2(<<-SQL)
       SELECT
         *
       FROM
@@ -13,10 +14,19 @@ class SQLObject
       LIMIT
         1
     SQL
-    data_return.map { |ele| ele.to_sym }
+    @columns = query_return[0].map { |ele| ele.to_sym }
   end
 
   def self.finalize!
+    self.columns.each do |col|
+      define_method(col) do
+        self.attributes[col]
+      end
+
+      define_method("#{col}=") do |new_val|
+        self.attributes[col] = new_val
+      end
+    end
   end
 
   def self.table_name=(table_name)
@@ -48,7 +58,7 @@ class SQLObject
   end
 
   def attributes
-    # ...
+    @attributes ||= {}
   end
 
   def attribute_values
@@ -67,3 +77,6 @@ class SQLObject
     # ...
   end
 end
+
+tester = SQLObject.new
+p tester.attributes
