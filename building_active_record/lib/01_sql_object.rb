@@ -42,7 +42,12 @@ class SQLObject
   end
 
   def self.all
-    # ...
+    DBConnection.execute2(<<-SQL)
+      SELECT
+        *
+      FROM
+        #{self.table_name}
+    SQL
   end
 
   def self.parse_all(results)
@@ -62,8 +67,6 @@ class SQLObject
   end
 
   def attributes
-    # return {} if @attributes == nil
-    # @attributes
     @attributes ||= {}
   end
 
